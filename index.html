@@ -281,24 +281,46 @@
   }
 
   // ── Table renderer ─────────────────────────────────────────────────────────
+
+  // Recursively find the largest array in a response object (max depth 3)
+  function extractRows(data, depth) {
+    depth = depth || 0;
+    if (Array.isArray(data)) return data.length ? data : null;
+    if (!data || typeof data !== 'object' || depth > 3) return null;
+
+    // Collect all arrays at this level, pick the largest
+    let best = null;
+    for (const key of Object.keys(data)) {
+      const val = data[key];
+      if (Array.isArray(val) && val.length > 0) {
+        if (!best || val.length > best.length) best = val;
+      }
+    }
+    if (best) return best;
+
+    // Search one level deeper inside nested objects
+    for (const key of Object.keys(data)) {
+      const val = data[key];
+      if (val && typeof val === 'object' && !Array.isArray(val)) {
+        const found = extractRows(val, depth + 1);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
   function renderTable(data, responseType) {
     const wrap = document.getElementById('tableWrap');
     wrap.innerHTML = '';
 
-    // Flatten data into rows array
-    let rows = [];
-    if (Array.isArray(data)) {
-      rows = data;
-    } else if (data && typeof data === 'object') {
-      for (const key of Object.keys(data)) {
-        if (Array.isArray(data[key]) && data[key].length > 0) {
-          rows = data[key]; break;
-        }
-      }
-      if (!rows.length) rows = [data];
+    let rows = extractRows(data);
+
+    // Fallback: render the top-level object as a single key-value row
+    if (!rows && data && typeof data === 'object') {
+      rows = [data];
     }
 
-    if (!rows.length) {
+    if (!rows || !rows.length) {
       wrap.innerHTML = '<div class="empty-msg">Нет данных</div>';
       return;
     }
