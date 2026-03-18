@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataDive Explorer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 860px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      margin-top: 8px;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #1e2130;
+      border: 1px solid #2d3348;
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    input[type="password"],
+    textarea {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3348;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    input[type="password"]:focus,
+    textarea:focus {
+      border-color: #6366f1;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    .row { margin-bottom: 18px; }
+    .row:last-child { margin-bottom: 0; }
+
+    .examples {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .example-chip {
+      background: #252a3d;
+      border: 1px solid #2d3348;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .example-chip:hover {
+      border-color: #6366f1;
+      color: #a5b4fc;
+    }
+
+    button#sendBtn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button#sendBtn:hover { opacity: 0.88; }
+    button#sendBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    #statusBar {
+      font-size: 0.83rem;
+      color: #64748b;
+      margin-top: 10px;
+      min-height: 18px;
+      text-align: center;
+    }
+
+    /* Result area */
+    #resultCard {
+      display: none;
+    }
+
+    #resultCard.visible {
+      display: block;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .result-header span {
+      font-size: 0.78rem;
+      color: #64748b;
+    }
+
+    .endpoint-badge {
+      background: #252a3d;
+      border: 1px solid #2d3348;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      color: #6366f1;
+      font-family: monospace;
+    }
+
+    /* Tab switcher */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: #0f1117;
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      padding: 5px 16px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #64748b;
+      font-size: 0.83rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-btn.active {
+      background: #1e2130;
+      color: #e2e8f0;
+    }
+
+    /* Table view */
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+
+    th {
+      background: #252a3d;
+      color: #94a3b8;
+      font-weight: 600;
+      padding: 9px 12px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #1a1f2e;
+      color: #cbd5e1;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    tr:hover td { background: #1a1f2e; }
+
+    /* JSON view */
+    pre#jsonView {
+      background: #0f1117;
+      border: 1px solid #2d3348;
+      border-radius: 8px;
+      padding: 16px;
+      overflow: auto;
+      max-height: 500px;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #a5b4fc;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .error-box {
+      background: #1e1010;
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      padding: 16px;
+      color: #fca5a5;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>DataDive Explorer</h1>
+      <p>Введите API ключ и запрос — получите данные из DataDive</p>
+    </header>
+
+    <div class="card">
+      <div class="row">
+        <label for="apiKey">DataDive API Key</label>
+        <input type="password" id="apiKey" placeholder="Ваш API ключ DataDive" autocomplete="off" />
+      </div>
+
+      <div class="row">
+        <label for="query">Запрос</label>
+        <textarea id="query" placeholder="Например: Покажи мои ниши"></textarea>
+        <div class="examples">
+          <span class="example-chip" onclick="setQuery(this)">Покажи мои ниши</span>
+          <span class="example-chip" onclick="setQuery(this)">Ключевые слова для ниши 123</span>
+          <span class="example-chip" onclick="setQuery(this)">Конкуренты в нише 123</span>
+          <span class="example-chip" onclick="setQuery(this)">Ranking juice для ниши 123</span>
+          <span class="example-chip" onclick="setQuery(this)">Корни ключевых слов ниши 123</span>
+          <span class="example-chip" onclick="setQuery(this)">Rank radar трекеры</span>
+        </div>
+      </div>
+
+      <button id="sendBtn" onclick="sendQuery()">Отправить запрос</button>
+      <div id="statusBar"></div>
+    </div>
+
+    <div class="card" id="resultCard">
+      <div class="result-header">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('table', this)">Таблица</button>
+          <button class="tab-btn" onclick="switchTab('json', this)">JSON</button>
+        </div>
+        <span id="endpointBadge" class="endpoint-badge"></span>
+      </div>
+
+      <div id="tableView">
+        <div class="table-wrap">
+          <table id="dataTable"><thead></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <pre id="jsonView" style="display:none;"></pre>
+      <div id="errorBox" class="error-box" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    let lastData = null;
+
+    function setQuery(el) {
+      document.getElementById('query').value = el.textContent;
+      document.getElementById('query').focus();
+    }
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tableView').style.display = tab === 'table' ? '' : 'none';
+      document.getElementById('jsonView').style.display = tab === 'json' ? '' : 'none';
+    }
+
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('statusBar');
+      el.textContent = msg;
+      el.style.color = isError ? '#f87171' : '#64748b';
+    }
+
+    function renderTable(data) {
+      const table = document.getElementById('dataTable');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      // Try to find an array in the response to display as table
+      let rows = [];
+      if (Array.isArray(data)) {
+        rows = data;
+      } else if (data && typeof data === 'object') {
+        // Look for the first array value
+        for (const key of Object.keys(data)) {
+          if (Array.isArray(data[key]) && data[key].length > 0) {
+            rows = data[key];
+            break;
+          }
+        }
+        // If no array found, treat the object as a single row
+        if (rows.length === 0 && Object.keys(data).length > 0) {
+          rows = [data];
+        }
+      }
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="99" style="text-align:center;color:#64748b;padding:24px">Нет данных</td></tr>';
+        return;
+      }
+
+      // Collect all keys
+      const keys = [...new Set(rows.flatMap(r => typeof r === 'object' && r ? Object.keys(r) : []))];
+      if (keys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="99" style="text-align:center;color:#64748b;padding:24px">Нет данных</td></tr>';
+        return;
+      }
+
+      // Header
+      const tr = document.createElement('tr');
+      keys.forEach(k => {
+        const th = document.createElement('th');
+        th.textContent = k;
+        tr.appendChild(th);
+      });
+      thead.appendChild(tr);
+
+      // Rows
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        keys.forEach(k => {
+          const td = document.createElement('td');
+          const val = row && row[k] !== undefined ? row[k] : '';
+          if (val !== null && typeof val === 'object') {
+            td.textContent = JSON.stringify(val);
+          } else {
+            td.textContent = val ?? '';
+          }
+          td.title = td.textContent;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function sendQuery() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const query = document.getElementById('query').value.trim();
+
+      if (!apiKey) { setStatus('Введите API ключ', true); return; }
+      if (!query) { setStatus('Введите запрос', true); return; }
+
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = true;
+      setStatus('Отправляю запрос...');
+
+      // Save API key in session (convenience)
+      sessionStorage.setItem('dd_api_key', apiKey);
+
+      try {
+        const res = await fetch('/api/datadive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: apiKey, query }),
+        });
+
+        const json = await res.json();
+
+        const resultCard = document.getElementById('resultCard');
+        const errorBox = document.getElementById('errorBox');
+        const jsonView = document.getElementById('jsonView');
+
+        resultCard.classList.add('visible');
+        errorBox.style.display = 'none';
+
+        if (!res.ok || json.error) {
+          errorBox.style.display = '';
+          errorBox.textContent = json.error || `Ошибка ${res.status}`;
+          if (json.detail) errorBox.textContent += '\n' + json.detail;
+          document.getElementById('endpointBadge').textContent = '';
+          document.getElementById('tableView').style.display = 'none';
+          jsonView.style.display = 'none';
+          setStatus('Ошибка от DataDive API', true);
+        } else {
+          document.getElementById('endpointBadge').textContent = json.endpoint || '';
+          lastData = json.data;
+          jsonView.textContent = JSON.stringify(json, null, 2);
+
+          // Show table by default
+          const activeTab = document.querySelector('.tab-btn.active');
+          if (activeTab && activeTab.textContent === 'Таблица') {
+            document.getElementById('tableView').style.display = '';
+            jsonView.style.display = 'none';
+          }
+          renderTable(json.data);
+          setStatus(`Готово — endpoint: ${json.endpoint}`);
+        }
+      } catch (e) {
+        setStatus('Сетевая ошибка: ' + e.message, true);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Restore API key from session
+    const saved = sessionStorage.getItem('dd_api_key');
+    if (saved) document.getElementById('apiKey').value = saved;
+
+    // Submit on Ctrl+Enter
+    document.getElementById('query').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendQuery();
+    });
+  </script>
+</body>
+</html>

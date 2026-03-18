@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/datadive.py": {
+      "maxDuration": 30
+    }
+  }
+}
