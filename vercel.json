@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/datadive.py": {
+    "api/*.py": {
       "maxDuration": 30
     }
   }
