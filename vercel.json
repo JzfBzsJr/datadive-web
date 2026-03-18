@@ -1,7 +1,18 @@
 {
-  "functions": {
-    "api/*.py": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/datadive.py",
+      "use": "@vercel/python"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/datadive",
+      "dest": "api/datadive.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
