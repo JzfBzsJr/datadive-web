@@ -3,6 +3,10 @@
     {
       "src": "api/datadive.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
